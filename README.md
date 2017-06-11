@@ -53,6 +53,18 @@ Submit the `vault-template` configmap:
 kubectl create -f configmaps/vault-template.yaml
 ```
 
+
+```bash
+kubectl apply -f secrets/users-secret.yaml
+kubectl apply -f configmaps/users-vault-template.yaml
+```
+
+
+```
+kubectl get configmaps users-vault -o yaml
+```
+
+
 ### Deploy the konfd replicaset
 
 ```

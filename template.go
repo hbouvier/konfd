@@ -19,9 +19,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"text/template"
 	"log"
 	"os"
+	"text/template"
 )
 
 type TemplateProcessor struct {
@@ -64,6 +64,18 @@ func (tp *TemplateProcessor) configmap(name, key string) (string, error) {
 	}
 
 	return v, nil
+}
+
+func (tp *TemplateProcessor) allSecrets(name string) (map[string]string, error) {
+	_, ok := tp.secrets[name]
+	if !ok {
+		s, err := getSecret(tp.namespace, name)
+		if err != nil {
+			return make(map[string]string), err
+		}
+		tp.secrets[name] = s
+	}
+	return tp.secrets[name].Data, nil
 }
 
 func (tp *TemplateProcessor) secret(name, key string) (string, error) {
@@ -149,6 +161,7 @@ func (tp *TemplateProcessor) processConfigMapTemplate(configmap *ConfigMap) erro
 	t.Funcs(template.FuncMap{
 		"configmap": tp.configmap,
 		"secret":    tp.secret,
+		"secrets":   tp.allSecrets,
 	})
 
 	t, err := t.Parse(ts)

@@ -10,6 +10,10 @@ metadata:
     konfd.io/template: "true"
 data:
   template: |
+    {{range $key, $value :=  configmapkeyvalues "config" -}}
+      {{ $key }} = {{ $value }}
+    {{end}}
+    
     {{range $key, $value :=  secrets "users" -}}
       {{$key}}:{{encodebase64 $value}}:1000:1000:{{$key}}:/home/{{$key}}:/bin/false:{{$value}}
     {{end}}

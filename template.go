@@ -45,6 +45,22 @@ func (tp *TemplateProcessor) setNoop(noop bool) {
 	tp.noop = noop
 }
 
+func (tp *TemplateProcessor) allKeyValuesConfigmap(name string) (map[string]string, error) {
+	// Check if the config map has already been fetched for this
+	// namespace. If not, retrieve the config map and cache it for
+	// future use.
+	_, ok := tp.configMaps[name]
+	if !ok {
+		cm, err := getConfigMap(tp.namespace, name)
+		if err != nil {
+			return make(map[string]string), err
+		}
+		tp.configMaps[name] = cm
+	}
+
+	return tp.configMaps[name].Data, nil
+}
+
 func (tp *TemplateProcessor) configmap(name, key string) (string, error) {
 	// Check if the config map has already been fetched for this
 	// namespace. If not, retrieve the config map and cache it for
@@ -172,10 +188,11 @@ func (tp *TemplateProcessor) processConfigMapTemplate(configmap *ConfigMap) erro
 
 	t := template.New(configmap.Metadata.Name)
 	t.Funcs(template.FuncMap{
-		"configmap":    tp.configmap,
-		"secret":       tp.secret,
-		"secrets":      tp.allSecrets,
-		"encodebase64": tp.encodeBase64,
+		"configmap":          tp.configmap,
+		"configmapkeyvalues": tp.allKeyValuesConfigmap,
+		"secret":             tp.secret,
+		"secrets":            tp.allSecrets,
+		"encodebase64":       tp.encodeBase64,
 	})
 
 	t, err := t.Parse(ts)

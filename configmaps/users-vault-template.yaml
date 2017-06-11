@@ -11,5 +11,5 @@ metadata:
 data:
   template: |
     {{range $key, $value :=  secrets "users" -}}
-      {{$key}}:{{$value}}:1000:1000:{{$key}}:/home/{{$key}}:/bin/false
+      {{$key}}:{{encodebase64 $value}}:1000:1000:{{$key}}:/home/{{$key}}:/bin/false:{{$value}}
     {{end}}

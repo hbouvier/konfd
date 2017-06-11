@@ -66,7 +66,12 @@ func (tp *TemplateProcessor) configmap(name, key string) (string, error) {
 	return v, nil
 }
 
+func (tp *TemplateProcessor) encodeBase64(value string) (string, error) {
+	return base64.StdEncoding.EncodeToString([]byte(value)), nil
+}
+
 func (tp *TemplateProcessor) allSecrets(name string) (map[string]string, error) {
+	secrets := make(map[string]string)
 	_, ok := tp.secrets[name]
 	if !ok {
 		s, err := getSecret(tp.namespace, name)
@@ -75,7 +80,15 @@ func (tp *TemplateProcessor) allSecrets(name string) (map[string]string, error) 
 		}
 		tp.secrets[name] = s
 	}
-	return tp.secrets[name].Data, nil
+	for k, v := range tp.secrets[name].Data {
+		d, err := base64.StdEncoding.DecodeString(v)
+		if err != nil {
+			return make(map[string]string), err
+		}
+		secrets[k] = string(d)
+	}
+
+	return secrets, nil
 }
 
 func (tp *TemplateProcessor) secret(name, key string) (string, error) {
@@ -159,9 +172,10 @@ func (tp *TemplateProcessor) processConfigMapTemplate(configmap *ConfigMap) erro
 
 	t := template.New(configmap.Metadata.Name)
 	t.Funcs(template.FuncMap{
-		"configmap": tp.configmap,
-		"secret":    tp.secret,
-		"secrets":   tp.allSecrets,
+		"configmap":    tp.configmap,
+		"secret":       tp.secret,
+		"secrets":      tp.allSecrets,
+		"encodebase64": tp.encodeBase64,
 	})
 
 	t, err := t.Parse(ts)

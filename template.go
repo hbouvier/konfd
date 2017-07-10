@@ -150,7 +150,7 @@ func process(namespaces, configmaps []string, noop bool) {
 }
 
 func (tp *TemplateProcessor) sync(configmaps []string) {
-	var cms []*ConfigMap
+	var cms []ConfigMap
 
 	if len(configmaps) == 0 {
 		cmList, err := getConfigMaps(tp.namespace)
@@ -159,7 +159,7 @@ func (tp *TemplateProcessor) sync(configmaps []string) {
 			return
 		}
 		for _, c := range cmList.Items {
-			cms = append(cms, &c)
+			cms = append(cms, c)
 		}
 	}
 
@@ -169,11 +169,12 @@ func (tp *TemplateProcessor) sync(configmaps []string) {
 			log.Println(err)
 			continue
 		}
-		cms = append(cms, cm)
+		cms = append(cms, *cm)
 	}
 
 	for _, c := range cms {
-		if err := tp.processConfigMapTemplate(c); err != nil {
+		err := tp.processConfigMapTemplate(&c)
+		if err != nil {
 			log.Println(err)
 			continue
 		}

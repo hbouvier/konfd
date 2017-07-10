@@ -1,4 +1,5 @@
 DOCKERHUB_NAMESPACE=hbouvier
+VERSION:=v0.0.4-001
 
 all: konfd containerize publish
 
@@ -9,7 +10,7 @@ konfd: flags.go kubernetes.go main.go template.go
 	GOOS=linux go build -a --ldflags '-extldflags "-static"' -tags netgo -installsuffix netgo .
 
 containerize:
-	docker build -t ${DOCKERHUB_NAMESPACE}/konfd:v0.0.4 .
+	docker build -t ${DOCKERHUB_NAMESPACE}/konfd:${VERSION} .
 
 publish:
-	docker push ${DOCKERHUB_NAMESPACE}/konfd:v0.0.4
+	docker push ${DOCKERHUB_NAMESPACE}/konfd:${VERSION}
